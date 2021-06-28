@@ -1,8 +1,12 @@
 {
-    "name": "ConnectFour",
-    "rootNamespace": "ConnectFour",
-    "references": [],
-    "includePlatforms": [],
+    "name": "ConnectFour.Editor",
+    "rootNamespace": "ConnectFour.Editor",
+    "references": [
+        "GUID:91293e6d1d5825b4596f35cada6c8db4"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

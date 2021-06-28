@@ -1,0 +1,10 @@
+@startuml
+
+GameWorld *-- BoardSystem
+GameWorld *-- TurnSystem
+BoardSystem *-- ColumnObject
+TurnSystem *-- Controller
+Controller <|-- PlayerController
+Controller <|-- AIController
+
+@enduml
