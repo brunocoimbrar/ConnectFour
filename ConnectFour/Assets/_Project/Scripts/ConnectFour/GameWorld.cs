@@ -10,6 +10,8 @@ namespace ConnectFour
         [SerializeField]
         private TurnSystem _turnSystem;
 
+        public BoardSystem.MoveState LastMoveState { get; private set; }
+
         public BoardSystem BoardSystem
         {
             get => _boardSystem;
@@ -44,9 +46,9 @@ namespace ConnectFour
 
         private void HandlePlayerSystemTurnEnded(int controllerIndex, int columnIndex)
         {
-            BoardSystem.MoveState state = _boardSystem.TryMove(controllerIndex, columnIndex);
+            LastMoveState = _boardSystem.TryMove(controllerIndex, columnIndex);
 
-            switch (state)
+            switch (LastMoveState)
             {
                 case BoardSystem.MoveState.Draw:
                 {

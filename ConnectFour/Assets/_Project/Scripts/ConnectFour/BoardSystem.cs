@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -24,14 +25,18 @@ namespace ConnectFour
 
         public event IColumnEventHandler.ColumnEventHandler OnColumnClicked;
 
+        [SerializeField] [Min(MinColumnCount)]
+        private int _columnCount = 7;
         [SerializeField] [Min(MinColumnCapacity)]
         private int _columnCapacity = 6;
         [SerializeField]
-        private ColumnObject[] _columns = Array.Empty<ColumnObject>();
+        private ColumnObject _columnTemplate;
         [SerializeField]
-        private GameObject[] _discPrefabs = Array.Empty<GameObject>();
+        private Color[] _discColors = Array.Empty<Color>();
 
         private const int MinColumnCapacity = 1;
+        private const int MinColumnCount = 1;
+        private readonly List<ColumnObject> _columns = new List<ColumnObject>();
 
         public int ColumnCapacity
         {
@@ -39,34 +44,41 @@ namespace ConnectFour
             set => _columnCapacity = Mathf.Max(MinColumnCapacity, value);
         }
 
-        public ColumnObject[] Columns
+        public int ColumnCount
         {
-            get => _columns;
-            set => _columns = value;
+            get => _columnCount;
+            set => _columnCount = Mathf.Max(MinColumnCount, value);
         }
 
-        public GameObject[] DiscPrefabs
+        public ColumnObject ColumnTemplate
         {
-            get => _discPrefabs;
-            set => _discPrefabs = value;
+            get => _columnTemplate;
+            set => _columnTemplate = value;
         }
+
+        public Color[] DiscColors
+        {
+            get => _discColors;
+            set => _discColors = value;
+        }
+
+        public IReadOnlyList<ColumnObject> Columns => _columns;
 
         public MoveState TryMove(int controllerIndex, int columnIndex)
         {
-            Transform columnTransform = _columns[columnIndex].transform;
+            Color? discColor = controllerIndex < _discColors.Length ? _discColors[controllerIndex] : (Color?)null;
+            int? discIndex = _columns[columnIndex].AddControllerIndex(controllerIndex, discColor);
 
-            if (columnTransform.childCount >= _columnCapacity)
+            if (discIndex == null)
             {
                 return MoveState.Invalid;
             }
 
-            Object.Instantiate(_discPrefabs[controllerIndex], columnTransform, false);
-
             // TODO: implement MoveState.Win condition
 
-            foreach (ColumnObject columnObject in _columns)
+            foreach (ColumnObject column in _columns)
             {
-                if (columnObject.transform.childCount < _columnCapacity)
+                if (!column.IsFilled)
                 {
                     return MoveState.Valid;
                 }
@@ -77,46 +89,31 @@ namespace ConnectFour
 
         public void Dispose()
         {
-            DestroyDiscs();
-
             foreach (ColumnObject column in _columns)
             {
-                column.OnClicked -= HandleColumnClicked;
+                Object.Destroy(column.gameObject);
             }
-
-            OnColumnClicked = null;
         }
 
         public void Initialize()
         {
-            foreach (ColumnObject column in _columns)
+            _columns.Capacity = _columnCount;
+            _columns.Clear();
+            _columnTemplate.gameObject.SetActive(false);
+
+            for (int i = 0; i < _columnCount; i++)
             {
-                column.OnClicked += HandleColumnClicked;
-            }
-        }
+                _columns.Add(Object.Instantiate(_columnTemplate, _columnTemplate.Parent, false));
 
-        public void Restart()
-        {
-            DestroyDiscs();
-        }
-
-        private void DestroyDiscs()
-        {
-            foreach (ColumnObject column in _columns)
-            {
-                Transform transform = column.transform;
-                int childCount = transform.childCount;
-
-                for (int i = 0; i < childCount; i++)
-                {
-                    Object.Destroy(transform.GetChild(i).gameObject);
-                }
+                _columns[i].OnClicked += HandleColumnClicked;
+                _columns[i].Initialize(_columnCapacity);
+                _columns[i].gameObject.SetActive(true);
             }
         }
 
         private void HandleColumnClicked(ColumnObject sender)
         {
-            OnColumnClicked?.Invoke(Array.IndexOf(_columns, sender));
+            OnColumnClicked?.Invoke(_columns.IndexOf(sender));
         }
     }
 }

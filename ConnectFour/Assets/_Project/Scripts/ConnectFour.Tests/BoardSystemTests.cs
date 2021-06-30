@@ -1,133 +1,103 @@
 using NUnit.Framework;
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using Object = UnityEngine.Object;
 
 namespace ConnectFour.Tests
 {
     public class BoardSystemTests
     {
+        private ColumnObject _columnTemplate;
+        private DiscObject _discTemplate;
+
+        [SetUp]
+        public void SetUp()
+        {
+            _columnTemplate = new GameObject(nameof(ColumnObject)).AddComponent<ColumnObject>();
+            _discTemplate = new GameObject(nameof(DiscObject)).AddComponent<DiscObject>();
+            _discTemplate.transform.parent = _columnTemplate.transform;
+            _columnTemplate.DiscTemplate = _discTemplate;
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            Object.Destroy(_columnTemplate);
+
+            _columnTemplate = null;
+            _discTemplate = null;
+        }
+
         [Test]
         public void CanMoveUntilColumnCapacityIsReached()
         {
-            ColumnObject[] columnObjects =
+            using BoardSystem boardSystem = new BoardSystem
             {
-                new GameObject(nameof(ColumnObject)).AddComponent<ColumnObject>(),
-                new GameObject(nameof(ColumnObject)).AddComponent<ColumnObject>(),
+                ColumnCount = 2,
+                ColumnCapacity = 2,
+                ColumnTemplate = _columnTemplate,
+                DiscColors = Array.Empty<Color>(),
             };
 
-            GameObject discPrefab = new GameObject("DiscPrefab");
-
-            using (BoardSystem boardSystem = new BoardSystem())
-            {
-                boardSystem.Columns = columnObjects;
-                boardSystem.DiscPrefabs = new[]
-                {
-                    discPrefab,
-                };
-
-                boardSystem.ColumnCapacity = 2;
-                boardSystem.Initialize();
-                Assert.AreEqual(BoardSystem.MoveState.Valid, boardSystem.TryMove(0, 0));
-                Assert.AreEqual(BoardSystem.MoveState.Valid, boardSystem.TryMove(0, 0));
-                Assert.AreEqual(BoardSystem.MoveState.Invalid, boardSystem.TryMove(0, 0));
-            }
-
-            Object.Destroy(discPrefab);
-
-            foreach (ColumnObject columnObject in columnObjects)
-            {
-                Object.Destroy(columnObject);
-            }
+            boardSystem.Initialize();
+            Assert.AreEqual(BoardSystem.MoveState.Valid, boardSystem.TryMove(0, 0));
+            Assert.AreEqual(BoardSystem.MoveState.Valid, boardSystem.TryMove(0, 0));
+            Assert.AreEqual(BoardSystem.MoveState.Invalid, boardSystem.TryMove(0, 0));
         }
+
         [Test]
         public void CanMoveUntilAllColumnCapacityAreReached()
         {
-            ColumnObject[] columnObjects =
+            using BoardSystem boardSystem = new BoardSystem
             {
-                new GameObject(nameof(ColumnObject)).AddComponent<ColumnObject>(),
-                new GameObject(nameof(ColumnObject)).AddComponent<ColumnObject>(),
+                ColumnCount = 2,
+                ColumnCapacity = 2,
+                ColumnTemplate = _columnTemplate,
+                DiscColors = Array.Empty<Color>(),
             };
 
-            GameObject discPrefab = new GameObject("DiscPrefab");
-
-            using (BoardSystem boardSystem = new BoardSystem())
-            {
-                boardSystem.Columns = columnObjects;
-                boardSystem.DiscPrefabs = new[]
-                {
-                    discPrefab,
-                };
-
-                boardSystem.ColumnCapacity = 2;
-                boardSystem.Initialize();
-                Assert.AreEqual(BoardSystem.MoveState.Valid, boardSystem.TryMove(0, 0));
-                Assert.AreEqual(BoardSystem.MoveState.Valid, boardSystem.TryMove(0, 0));
-                Assert.AreEqual(BoardSystem.MoveState.Valid, boardSystem.TryMove(0, 1));
-                Assert.AreEqual(BoardSystem.MoveState.Draw, boardSystem.TryMove(0, 1));
-            }
-
-            Object.Destroy(discPrefab.gameObject);
-
-            foreach (ColumnObject columnObject in columnObjects)
-            {
-                Object.Destroy(columnObject.gameObject);
-            }
+            boardSystem.Initialize();
+            Assert.AreEqual(BoardSystem.MoveState.Valid, boardSystem.TryMove(0, 0));
+            Assert.AreEqual(BoardSystem.MoveState.Valid, boardSystem.TryMove(0, 0));
+            Assert.AreEqual(BoardSystem.MoveState.Valid, boardSystem.TryMove(0, 1));
+            Assert.AreEqual(BoardSystem.MoveState.Draw, boardSystem.TryMove(0, 1));
         }
 
         [Test]
         public void ColumnClickedReturnsCorrectColumnIndex()
         {
-            ColumnObject[] columnObjects =
+            using BoardSystem boardSystem = new BoardSystem
             {
-                new GameObject(nameof(ColumnObject)).AddComponent<ColumnObject>(),
-                new GameObject(nameof(ColumnObject)).AddComponent<ColumnObject>(),
-                new GameObject(nameof(ColumnObject)).AddComponent<ColumnObject>(),
-                new GameObject(nameof(ColumnObject)).AddComponent<ColumnObject>(),
-                new GameObject(nameof(ColumnObject)).AddComponent<ColumnObject>(),
-                new GameObject(nameof(ColumnObject)).AddComponent<ColumnObject>(),
+                ColumnCount = 6,
+                ColumnCapacity = 2,
+                ColumnTemplate = _columnTemplate,
+                DiscColors = Array.Empty<Color>(),
             };
 
-            GameObject discPrefab = new GameObject("DiscPrefab");
+            boardSystem.Initialize();
 
-            using (BoardSystem boardSystem = new BoardSystem())
+            int expected = -1;
+
+            void handleColumnClicked(int columnIndex)
             {
-                boardSystem.Columns = columnObjects;
-                boardSystem.DiscPrefabs = new[]
-                {
-                    discPrefab,
-                };
-
-                boardSystem.ColumnCapacity = 1;
-                boardSystem.Initialize();
-
-                int expected = -1;
-
-                void handleColumnClicked(int columnIndex)
-                {
-                    Assert.AreEqual(expected, columnIndex);
-                }
-
-                boardSystem.OnColumnClicked += handleColumnClicked;
-
-                for (int i = 0; i < columnObjects.Length; i++)
-                {
-                    int index = i;
-                    expected = index;
-                    ExecuteEvents.Execute<IPointerClickHandler>(columnObjects[index].gameObject, null, delegate
-                    {
-                        columnObjects[index].OnPointerClick(null);
-                    });
-                }
-
-                Assert.AreNotEqual(expected, -1);
+                Assert.AreEqual(expected, columnIndex);
+                Assert.AreEqual(expected, columnIndex);
             }
 
-            Object.Destroy(discPrefab.gameObject);
+            boardSystem.OnColumnClicked += handleColumnClicked;
 
-            foreach (ColumnObject columnObject in columnObjects)
+            for (int i = 0; i < boardSystem.ColumnCount; i++)
             {
-                Object.Destroy(columnObject.gameObject);
+                int index = i;
+                expected = index;
+                ExecuteEvents.Execute(boardSystem.Columns[index].gameObject, null, delegate (IPointerClickHandler handler, BaseEventData data)
+                {
+                    handler.OnPointerClick(null);
+                });
             }
+
+            Assert.AreNotEqual(expected, -1);
         }
     }
 }

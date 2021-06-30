@@ -8,12 +8,14 @@ namespace ConnectFour.Tests
         [Test]
         public void HumanVsHuman3TurnsFlow()
         {
-            TurnSystem turnSystem = new TurnSystem();
             ColumnEventHandler columnEventHandler = new ColumnEventHandler();
-            turnSystem.ControllersAssets = new Controller[]
+            TurnSystem turnSystem = new TurnSystem
             {
-                ScriptableObject.CreateInstance<PlayerController>(),
-                ScriptableObject.CreateInstance<PlayerController>(),
+                ControllersAssets = new Controller[]
+                {
+                    ScriptableObject.CreateInstance<PlayerController>(),
+                    ScriptableObject.CreateInstance<PlayerController>(),
+                },
             };
 
             turnSystem.Initialize(columnEventHandler);

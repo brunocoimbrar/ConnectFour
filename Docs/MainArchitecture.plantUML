@@ -3,6 +3,7 @@
 GameWorld *-- BoardSystem
 GameWorld *-- TurnSystem
 BoardSystem *-- ColumnObject
+ColumnObject *-- DiscObject
 TurnSystem *-- Controller
 Controller <|-- PlayerController
 Controller <|-- AIController
