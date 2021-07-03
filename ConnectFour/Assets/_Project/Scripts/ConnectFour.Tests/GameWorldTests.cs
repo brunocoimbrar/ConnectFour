@@ -30,6 +30,7 @@ namespace ConnectFour.Tests
             {
                 ColumnCount = 7,
                 ColumnCapacity = 6,
+                WinSequenceSize = 4,
                 ColumnTemplate = _columnTemplate,
                 DiscColors = Array.Empty<Color>(),
             };
@@ -71,7 +72,7 @@ namespace ConnectFour.Tests
             Click(3);
             Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
 
-            for (int i = 0; i < _gameWorld.BoardSystem.ColumnCount; i++)
+            for (int i = 0; i < 3; i++)
             {
                 do
                 {
@@ -80,11 +81,80 @@ namespace ConnectFour.Tests
                 while (_gameWorld.LastMoveState == BoardSystem.MoveState.Valid);
             }
 
+            for (int i = 4; i < _gameWorld.BoardSystem.ColumnCount; i++)
+            {
+                do
+                {
+                    Click(i);
+                }
+                while (_gameWorld.LastMoveState == BoardSystem.MoveState.Valid);
+            }
+
+            do
+            {
+                Click(3);
+            }
+            while (_gameWorld.LastMoveState == BoardSystem.MoveState.Valid);
+
             Assert.AreEqual(BoardSystem.MoveState.Draw, _gameWorld.LastMoveState);
         }
 
         [Test]
-        public void WinFlow()
+        public void WinFlow_DiagonalBackward()
+        {
+            Click(3);
+            Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            Click(2);
+            Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            Click(1);
+            Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            Click(0);
+            Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            Click(2);
+            Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            Click(1);
+            Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            Click(0);
+            Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            Click(0);
+            Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            Click(1);
+            Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            Click(1);
+            Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            Click(0);
+            Assert.AreEqual(BoardSystem.MoveState.Win, _gameWorld.LastMoveState);
+        }
+
+        [Test]
+        public void WinFlow_DiagonalForward()
+        {
+            Click(0);
+            Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            Click(1);
+            Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            Click(2);
+            Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            Click(3);
+            Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            Click(1);
+            Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            Click(2);
+            Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            Click(3);
+            Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            Click(3);
+            Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            Click(2);
+            Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            Click(2);
+            Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            Click(3);
+            Assert.AreEqual(BoardSystem.MoveState.Win, _gameWorld.LastMoveState);
+        }
+
+        [Test]
+        public void WinFlow_Horizontal()
         {
             for (int i = 0; i < _gameWorld.BoardSystem.ColumnCapacity; i++)
             {
@@ -104,6 +174,21 @@ namespace ConnectFour.Tests
             }
 
             Click(3);
+            Assert.AreEqual(BoardSystem.MoveState.Win, _gameWorld.LastMoveState);
+        }
+
+        [Test]
+        public void WinFlow_Vertical()
+        {
+            for (int i = 0; i < _gameWorld.BoardSystem.WinSequenceSize - 1; i++)
+            {
+                Click(0);
+                Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+                Click(1);
+                Assert.AreEqual(BoardSystem.MoveState.Valid, _gameWorld.LastMoveState);
+            }
+
+            Click(0);
             Assert.AreEqual(BoardSystem.MoveState.Win, _gameWorld.LastMoveState);
         }
 

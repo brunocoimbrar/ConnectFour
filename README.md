@@ -1,5 +1,7 @@
 # ConnectFour
 
+![LineCoverageBadge](Docs/badge_linecoverage.svg)
+
 [Try the WebGL demo here.](https://coimbrastudios.github.io/ConnectFour/)
 
 ## Architecture

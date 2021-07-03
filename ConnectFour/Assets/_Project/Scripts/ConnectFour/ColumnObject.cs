@@ -15,21 +15,7 @@ namespace ConnectFour
 
         private readonly List<DiscObject> _discs = new List<DiscObject>();
 
-        public bool IsFilled
-        {
-            get
-            {
-                foreach (DiscObject disc in _discs)
-                {
-                    if (disc.ControllerIndex == null)
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-        }
+        public int DiscCount { get; private set; }
 
         public DiscObject DiscTemplate
         {
@@ -41,6 +27,7 @@ namespace ConnectFour
 
         public void Initialize(int capacity)
         {
+            DiscCount = 0;
             _discs.Capacity = capacity;
             _discs.Clear();
             _discTemplate.gameObject.SetActive(false);
@@ -52,19 +39,29 @@ namespace ConnectFour
             }
         }
 
-        public int? AddControllerIndex(int index, Color? color = null)
+        public int? AddControllerIndex(int controllerIndex, Color? color = null)
         {
-            for (int i = 0; i < _discs.Count; i++)
+            if (DiscCount < _discs.Count)
             {
-                if (_discs[i].ControllerIndex == null)
-                {
-                    _discs[i].SetControllerIndex(index, color);
+                DiscCount++;
 
-                    return i;
+                for (int i = 0; i < _discs.Count; i++)
+                {
+                    if (_discs[i].ControllerIndex == null)
+                    {
+                        _discs[i].SetControllerIndex(controllerIndex, color);
+
+                        return i;
+                    }
                 }
             }
 
             return null;
+        }
+
+        public int? GetControllerIndex(int discIndex)
+        {
+            return _discs[discIndex].ControllerIndex;
         }
 
         public void OnPointerClick(PointerEventData eventData)
