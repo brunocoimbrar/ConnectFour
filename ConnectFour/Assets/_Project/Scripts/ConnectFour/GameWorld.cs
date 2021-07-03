@@ -66,7 +66,7 @@ namespace ConnectFour
 
                 case BoardSystem.MoveState.Invalid:
                 {
-                    Debug.Log("Invalid");
+                    _turnSystem.BeginTurn(controllerIndex);
 
                     break;
                 }
