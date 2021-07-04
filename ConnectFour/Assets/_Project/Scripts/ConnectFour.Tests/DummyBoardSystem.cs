@@ -13,11 +13,14 @@ namespace ConnectFour.Tests
 
         public int ColumnCapacity => 6;
 
-        public int ColumnCount => 7;
-
-        public int WinSequenceSize => 4;
-
         public IReadOnlyList<IColumn> Columns => Array.Empty<IColumn>();
+
+        public bool IsWinMove(int controllerIndex, int columnIndex, out IBoardSystem.MoveDetails moveDetails)
+        {
+            moveDetails = default;
+
+            return false;
+        }
 
         public void AddPreview(int controllerIndex, int columnIndex) { }
 

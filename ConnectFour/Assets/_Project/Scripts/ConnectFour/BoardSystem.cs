@@ -7,6 +7,18 @@ namespace ConnectFour
 {
     public interface IBoardSystem
     {
+        struct MoveDetails
+        {
+            public int DiagonalBackwardSequence;
+            public int DiagonalForwardSequence;
+            public int HorizontalSequence;
+            public int VerticalSequence;
+
+            public int Sum => DiagonalBackwardSequence + DiagonalForwardSequence + HorizontalSequence + VerticalSequence;
+
+            public int Max => Mathf.Max(DiagonalBackwardSequence, DiagonalForwardSequence, HorizontalSequence, VerticalSequence);
+        }
+
         delegate void ColumnEventHandler(IBoardSystem boardSystem, int columnIndex);
 
         event ColumnEventHandler OnColumnClicked;
@@ -17,11 +29,9 @@ namespace ConnectFour
 
         int ColumnCapacity { get; }
 
-        int ColumnCount { get; }
-
-        int WinSequenceSize { get; }
-
         IReadOnlyList<IColumn> Columns { get; }
+
+        bool IsWinMove(int controllerIndex, int columnIndex, out MoveDetails moveDetails);
 
         void AddPreview(int controllerIndex, int columnIndex);
 
@@ -125,6 +135,17 @@ namespace ConnectFour
             OnColumnPointerExit = null;
         }
 
+        public bool IsWinMove(int controllerIndex, int columnIndex, out IBoardSystem.MoveDetails moveDetails)
+        {
+            moveDetails = new IBoardSystem.MoveDetails();
+            bool result = HasVerticalSequence(controllerIndex, columnIndex, ref moveDetails);
+            result |= HasHorizontalSequence(controllerIndex, columnIndex, ref moveDetails);
+            result |= HasDiagonalForwardSequence(controllerIndex, columnIndex, ref moveDetails);
+            result |= HasDiagonalBackwardSequence(controllerIndex, columnIndex, ref moveDetails);
+
+            return result;
+        }
+
         public void AddPreview(int controllerIndex, int columnIndex)
         {
             Color color = _discColors[controllerIndex];
@@ -139,15 +160,16 @@ namespace ConnectFour
 
         public MoveState TryMove(int controllerIndex, int columnIndex)
         {
-            Color? discColor = controllerIndex < _discColors.Length ? _discColors[controllerIndex] : (Color?)null;
-            int? discIndex = _columns[columnIndex].AddControllerIndex(controllerIndex, discColor);
-
-            if (discIndex == null)
+            if (_columns[columnIndex].DiscCount >= _columnCapacity)
             {
                 return MoveState.Invalid;
             }
 
-            if (IsWinMove(controllerIndex, columnIndex))
+            bool isWinMove = IsWinMove(controllerIndex, columnIndex, out _);
+            Color? discColor = controllerIndex < _discColors.Length ? _discColors[controllerIndex] : (Color?)null;
+            _columns[columnIndex].AddControllerIndex(controllerIndex, discColor);
+
+            if (isWinMove)
             {
                 return MoveState.Win;
             }
@@ -178,10 +200,10 @@ namespace ConnectFour
             OnColumnPointerExit?.Invoke(this, _columns.IndexOf(sender));
         }
 
-        private bool HasDiagonalBackwardSequence(int controllerIndex, int columnIndex)
+        private bool HasDiagonalBackwardSequence(int controllerIndex, int columnIndex, ref IBoardSystem.MoveDetails moveDetails)
         {
-            int count = 1;
-            int discIndex = _columns[columnIndex].DiscCount - 1;
+            int discIndex = _columns[columnIndex].DiscCount;
+            moveDetails.DiagonalBackwardSequence = 1;
 
             for (int i = 1; i < _winSequenceSize; i++)
             {
@@ -190,17 +212,12 @@ namespace ConnectFour
 
                 if (targetDiscIndex >= 0 && targetColumnIndex < _columns.Count && targetDiscIndex < _columns[targetColumnIndex].DiscCount && controllerIndex == _columns[targetColumnIndex].GetControllerIndex(targetDiscIndex))
                 {
-                    count++;
+                    moveDetails.DiagonalBackwardSequence++;
 
                     continue;
                 }
 
                 break;
-            }
-
-            if (count >= WinSequenceSize)
-            {
-                return true;
             }
 
             for (int i = 1; i < _winSequenceSize; i++)
@@ -210,7 +227,7 @@ namespace ConnectFour
 
                 if (targetColumnIndex >= 0 && targetDiscIndex < _columns[targetColumnIndex].DiscCount && controllerIndex == _columns[targetColumnIndex].GetControllerIndex(targetDiscIndex))
                 {
-                    count++;
+                    moveDetails.DiagonalBackwardSequence++;
 
                     continue;
                 }
@@ -218,13 +235,13 @@ namespace ConnectFour
                 break;
             }
 
-            return count >= WinSequenceSize;
+            return moveDetails.DiagonalBackwardSequence >= WinSequenceSize;
         }
 
-        private bool HasDiagonalForwardSequence(int controllerIndex, int columnIndex)
+        private bool HasDiagonalForwardSequence(int controllerIndex, int columnIndex, ref IBoardSystem.MoveDetails moveDetails)
         {
-            int count = 1;
-            int discIndex = _columns[columnIndex].DiscCount - 1;
+            int discIndex = _columns[columnIndex].DiscCount;
+            moveDetails.DiagonalForwardSequence = 1;
 
             for (int i = 1; i < _winSequenceSize; i++)
             {
@@ -233,17 +250,12 @@ namespace ConnectFour
 
                 if (targetColumnIndex < _columns.Count && targetDiscIndex < _columns[targetColumnIndex].DiscCount && controllerIndex == _columns[targetColumnIndex].GetControllerIndex(targetDiscIndex))
                 {
-                    count++;
+                    moveDetails.DiagonalForwardSequence++;
 
                     continue;
                 }
 
                 break;
-            }
-
-            if (count >= WinSequenceSize)
-            {
-                return true;
             }
 
             for (int i = 1; i < _winSequenceSize; i++)
@@ -253,7 +265,7 @@ namespace ConnectFour
 
                 if (targetColumnIndex >= 0 && targetDiscIndex >= 0 && targetColumnIndex < _columns.Count && targetDiscIndex < _columns[targetColumnIndex].DiscCount && controllerIndex == _columns[targetColumnIndex].GetControllerIndex(targetDiscIndex))
                 {
-                    count++;
+                    moveDetails.DiagonalForwardSequence++;
 
                     continue;
                 }
@@ -261,36 +273,31 @@ namespace ConnectFour
                 break;
             }
 
-            return count >= WinSequenceSize;
+            return moveDetails.DiagonalForwardSequence >= WinSequenceSize;
         }
 
-        private bool HasHorizontalSequence(int controllerIndex, int columnIndex)
+        private bool HasHorizontalSequence(int controllerIndex, int columnIndex, ref IBoardSystem.MoveDetails moveDetails)
         {
-            int count = 1;
-            int discIndex = _columns[columnIndex].DiscCount - 1;
+            int discIndex = _columns[columnIndex].DiscCount;
+            moveDetails.HorizontalSequence = 1;
 
             for (int i = columnIndex + 1; i < _columnCount; i++)
             {
                 if (discIndex < _columns[i].DiscCount && controllerIndex == _columns[i].GetControllerIndex(discIndex))
                 {
-                    count++;
+                    moveDetails.HorizontalSequence++;
 
                     continue;
                 }
 
                 break;
-            }
-
-            if (count >= WinSequenceSize)
-            {
-                return true;
             }
 
             for (int i = columnIndex - 1; i >= 0; i--)
             {
                 if (discIndex < _columns[i].DiscCount && controllerIndex == _columns[i].GetControllerIndex(discIndex))
                 {
-                    count++;
+                    moveDetails.HorizontalSequence++;
 
                     continue;
                 }
@@ -298,33 +305,26 @@ namespace ConnectFour
                 break;
             }
 
-            return count >= WinSequenceSize;
+            return moveDetails.HorizontalSequence >= WinSequenceSize;
         }
 
-        private bool HasVerticalSequence(int controllerIndex, int columnIndex)
+        private bool HasVerticalSequence(int controllerIndex, int columnIndex, ref IBoardSystem.MoveDetails moveDetails)
         {
-            if (_columns[columnIndex].DiscCount < _winSequenceSize)
-            {
-                return false;
-            }
+            moveDetails.VerticalSequence = 1;
 
-            for (int i = _columns[columnIndex].DiscCount - 2; i >= _columns[columnIndex].DiscCount - _winSequenceSize; i--)
+            for (int i = _columns[columnIndex].DiscCount - 1; i >= _columns[columnIndex].DiscCount - _winSequenceSize + 1 && i >= 0; i--)
             {
-                if (controllerIndex != _columns[columnIndex].GetControllerIndex(i))
+                if (controllerIndex == _columns[columnIndex].GetControllerIndex(i))
                 {
-                    return false;
+                    moveDetails.VerticalSequence++;
+
+                    continue;
                 }
+
+                break;
             }
 
-            return true;
-        }
-
-        private bool IsWinMove(int controllerIndex, int columnIndex)
-        {
-            return HasVerticalSequence(controllerIndex, columnIndex)
-                || HasHorizontalSequence(controllerIndex, columnIndex)
-                || HasDiagonalForwardSequence(controllerIndex, columnIndex)
-                || HasDiagonalBackwardSequence(controllerIndex, columnIndex);
+            return moveDetails.VerticalSequence >= WinSequenceSize;
         }
     }
 }

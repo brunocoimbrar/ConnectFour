@@ -25,10 +25,9 @@ interface IBoardSystem
   ColumnEventHandler OnColumnPointerExit;
   __
   int ColumnCapacity { get; }
-  int ColumnCount { get; }
-  int WinSequenceSize { get; }
   IReadOnlyList<IColumnData> Columns { get; }
   __
+  bool IsWinMove(int controllerIndex, int columnIndex, out MoveDetails moveDetails);
   void AddPreview(int controllerIndex, int columnIndex);
   void RemovePreview(int columnIndex);
 }
@@ -36,8 +35,8 @@ interface IBoardSystem
 class BoardSystem <<Serializable>>
 {
   +int ColumnCapacity { set; }
-  +int ColumnCount { set; }
-  +int WinSequenceSize { set; }
+  +int ColumnCount { set; set; }
+  +int WinSequenceSize { set; set; }
   +ColumnObject ColumnTemplate { get; set; }
   +Color[] DiscColors { get; set; }
   __
