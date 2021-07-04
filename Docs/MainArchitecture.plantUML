@@ -25,7 +25,7 @@ interface IBoardSystem
   ColumnEventHandler OnColumnPointerExit;
   __
   int ColumnCapacity { get; }
-  IReadOnlyList<IColumnData> Columns { get; }
+  IReadOnlyList<IColumn> Columns { get; }
   __
   bool IsWinMove(int controllerIndex, int columnIndex, out MoveDetails moveDetails);
   void AddPreview(int controllerIndex, int columnIndex);
@@ -78,7 +78,7 @@ class DiscObject <<MonoBehaviour>>
 
 interface ITurnSystem
 {
-  IReadOnlyList<IControllerData> Controllers { get; }
+  IReadOnlyList<IController> Controllers { get; }
 }
 
 class TurnSystem <<Serializable>>
@@ -88,7 +88,7 @@ class TurnSystem <<Serializable>>
   __
   +Controller[] ControllersAssets { get; set; }
   __
-  +void Initialize(IWorldContext worldContext, IBoardData boardData, ITurnData turnData);
+  +void Initialize(IWorld world, IBoardSystem boardSystem, ITurnSystem turnSystem);
   +void Dispose();
   +void BeginTurn(int turnId);
 }
@@ -102,12 +102,12 @@ abstract class Controller <<ScriptableObject>>
 {
   +EndTurnEventHandler OnTurnEnded
   __
-  #IBoardData BoardData { get; }
-  #ITurnData TurnData { get; }
-  #IWorldContext WorldContext { get; }
+  #IBoardSystem BoardSystem { get; }
+  #ITurnSystem TurnSystem { get; }
+  #IWorld World { get; }
   __
   +abstract void BeginTurn();
-  +void Initialize(IWorldContext worldContext, IBoardData boardData, ITurnData turnData);
+  +void Initialize(IWorld world, IBoardSystem boardSystem, ITurnSystem turnSystem);
   #void EndTurn(int columnIndex);
 }
 
@@ -125,7 +125,7 @@ class UISystem <<Serializable>>
 {
   +UnityAction OnRestartButtonClick { add; remove; }
   __
-  +void Initialize(IWorldContext worldContext);
+  +void Initialize(IWorld world);
   +void Dispose();
   +void SetController(int controllerNumber, string controllerName, Color discColor);
   +void SetDrawMoveFeedbackActive();
