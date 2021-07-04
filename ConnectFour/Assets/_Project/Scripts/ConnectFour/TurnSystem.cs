@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -7,7 +8,11 @@ namespace ConnectFour
     [Serializable]
     public sealed class TurnSystem : IDisposable
     {
-        public delegate void EndTurnEventHandler(int controllerIndex, int columnIndex);
+        public delegate void BeginTurnEventHandler(IControllerData controllerData);
+
+        public delegate void EndTurnEventHandler(IControllerData controllerData, int columnIndex);
+
+        public event BeginTurnEventHandler OnTurnBegan;
 
         public event EndTurnEventHandler OnTurnEnded;
 
@@ -22,9 +27,13 @@ namespace ConnectFour
 
         private Controller[] _controllers;
 
+        public IReadOnlyList<IControllerData> Controllers => _controllers;
+
         public void BeginTurn(int turnId)
         {
-            _controllers[turnId % _controllers.Length].BeginTurn();
+            Controller controller = _controllers[turnId % _controllers.Length];
+            controller.BeginTurn();
+            OnTurnBegan?.Invoke(controller);
         }
 
         public void Dispose()
@@ -34,25 +43,25 @@ namespace ConnectFour
                 Object.Destroy(controller);
             }
 
+            OnTurnBegan = null;
             OnTurnEnded = null;
         }
 
-        public void Initialize(IColumnEventHandler columnEventHandler)
+        public void Initialize(IWorldContext worldContext, IBoardData boardData)
         {
             _controllers = new Controller[_controllersAssets.Length];
 
             for (int i = 0; i < _controllers.Length; i++)
             {
                 _controllers[i] = Object.Instantiate(_controllersAssets[i]);
-                _controllers[i].Initialize(columnEventHandler);
+                _controllers[i].Initialize(worldContext, boardData);
                 _controllers[i].OnTurnEnded += HandleControllerTurnEnded;
             }
         }
 
         private void HandleControllerTurnEnded(Controller sender, int columnIndex)
         {
-            int current = Array.IndexOf(_controllers, sender);
-            OnTurnEnded?.Invoke(current, columnIndex);
+            OnTurnEnded?.Invoke(sender, columnIndex);
         }
     }
 }

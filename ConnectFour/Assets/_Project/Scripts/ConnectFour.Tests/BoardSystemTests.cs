@@ -79,7 +79,7 @@ namespace ConnectFour.Tests
 
             int expected = -1;
 
-            void handleColumnClicked(int columnIndex)
+            void handleColumnClicked(IBoardData boardData, int columnIndex)
             {
                 Assert.AreEqual(expected, columnIndex);
                 Assert.AreEqual(expected, columnIndex);
@@ -91,7 +91,7 @@ namespace ConnectFour.Tests
             {
                 int index = i;
                 expected = index;
-                ExecuteEvents.Execute(boardSystem.Columns[index].gameObject, null, delegate (IPointerClickHandler handler, BaseEventData data)
+                ExecuteEvents.Execute(((ColumnObject)boardSystem.Columns[index]).gameObject, null, delegate (IPointerClickHandler handler, BaseEventData data)
                 {
                     handler.OnPointerClick(null);
                 });

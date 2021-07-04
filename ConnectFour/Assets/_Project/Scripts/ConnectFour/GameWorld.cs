@@ -1,14 +1,24 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 namespace ConnectFour
 {
-    public sealed class GameWorld : MonoBehaviour
+    public interface IWorldContext
+    {
+        Coroutine StartCoroutine(IEnumerator coroutine);
+
+        void StopCoroutine(Coroutine coroutine);
+    }
+
+    public sealed class GameWorld : MonoBehaviour, IWorldContext
     {
         [SerializeField]
         private BoardSystem _boardSystem;
         [SerializeField]
         private TurnSystem _turnSystem;
+        [SerializeField]
+        private UISystem _uiSystem;
 
         public BoardSystem.MoveState LastMoveState { get; private set; }
 
@@ -24,12 +34,25 @@ namespace ConnectFour
             set => _turnSystem = value;
         }
 
+        public UISystem UISystem
+        {
+            get => _uiSystem;
+            set => _uiSystem = value;
+        }
+
         private void Awake()
         {
             _boardSystem.Initialize();
 
-            _turnSystem.OnTurnEnded += HandlePlayerSystemTurnEnded;
-            _turnSystem.Initialize((IColumnEventHandler)_boardSystem);
+            _turnSystem.OnTurnBegan += HandleTurnSystemTurnBegan;
+            _turnSystem.OnTurnEnded += HandleTurnSystemTurnEnded;
+            _turnSystem.Initialize(this, (IBoardData)_boardSystem);
+
+            if (_uiSystem != null)
+            {
+                _uiSystem.OnRestartButtonClick += HandleUISystemRestartButtonClick;
+                _uiSystem.Initialize(this);
+            }
         }
 
         private void Start()
@@ -39,27 +62,35 @@ namespace ConnectFour
 
         private void OnDestroy()
         {
-            _turnSystem.OnTurnEnded -= HandlePlayerSystemTurnEnded;
+            _uiSystem?.Dispose();
             _turnSystem.Dispose();
             _boardSystem.Dispose();
         }
 
-        private void HandlePlayerSystemTurnEnded(int controllerIndex, int columnIndex)
+        private void HandleTurnSystemTurnBegan(IControllerData controllerData)
         {
+            int controllerIndex = _turnSystem.Controllers.IndexOf(controllerData);
+            _uiSystem?.SetController(controllerIndex + 1, controllerData.DisplayName, _boardSystem.DiscColors[controllerIndex]);
+        }
+
+        private void HandleTurnSystemTurnEnded(IControllerData controllerData, int columnIndex)
+        {
+            int controllerIndex = _turnSystem.Controllers.IndexOf(controllerData);
             LastMoveState = _boardSystem.TryMove(controllerIndex, columnIndex);
 
             switch (LastMoveState)
             {
                 case BoardSystem.MoveState.Draw:
                 {
-                    Debug.Log("Draw");
+                    _uiSystem?.SetDrawMoveFeedbackActive();
 
                     break;
                 }
 
                 case BoardSystem.MoveState.Valid:
                 {
-                    _turnSystem.BeginTurn(controllerIndex + 1);
+                    controllerIndex++;
+                    _turnSystem.BeginTurn(controllerIndex);
 
                     break;
                 }
@@ -67,13 +98,14 @@ namespace ConnectFour
                 case BoardSystem.MoveState.Invalid:
                 {
                     _turnSystem.BeginTurn(controllerIndex);
+                    _uiSystem?.SetInvalidMOveFeedbackActive();
 
                     break;
                 }
 
                 case BoardSystem.MoveState.Win:
                 {
-                    Debug.Log("Win");
+                    _uiSystem?.SetWinMoveFeedbackActive();
 
                     break;
                 }
@@ -83,6 +115,14 @@ namespace ConnectFour
                     throw new ArgumentOutOfRangeException();
                 }
             }
+        }
+
+        private void HandleUISystemRestartButtonClick()
+        {
+            StopAllCoroutines();
+            OnDestroy();
+            Awake();
+            Start();
         }
     }
 }

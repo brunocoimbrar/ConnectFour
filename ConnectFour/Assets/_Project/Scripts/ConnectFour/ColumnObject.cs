@@ -4,11 +4,20 @@ using UnityEngine.EventSystems;
 
 namespace ConnectFour
 {
-    public sealed class ColumnObject : MonoBehaviour, IPointerClickHandler
+    public interface IColumnData
     {
-        public delegate void EventHandler(ColumnObject sender);
+        delegate void EventHandler(IColumnData sender);
 
-        public event EventHandler OnClicked;
+        event EventHandler OnClicked;
+
+        int DiscCount { get; }
+
+        int? GetControllerIndex(int discIndex);
+    }
+
+    public sealed class ColumnObject : MonoBehaviour, IColumnData, IPointerClickHandler
+    {
+        public event IColumnData.EventHandler OnClicked;
 
         [SerializeField]
         private DiscObject _discTemplate;
@@ -64,7 +73,7 @@ namespace ConnectFour
             return _discs[discIndex].ControllerIndex;
         }
 
-        public void OnPointerClick(PointerEventData eventData)
+        void IPointerClickHandler.OnPointerClick(PointerEventData eventData)
         {
             OnClicked?.Invoke(this);
         }

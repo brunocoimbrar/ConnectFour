@@ -2,19 +2,32 @@
 
 namespace ConnectFour
 {
-    public abstract class Controller : ScriptableObject
+    public interface IControllerData
+    {
+        string DisplayName { get; }
+    }
+
+    public abstract class Controller : ScriptableObject, IControllerData
     {
         public delegate void EndTurnEventHandler(Controller sender, int columnIndex);
 
         public event EndTurnEventHandler OnTurnEnded;
 
-        protected IColumnEventHandler ColumnEventHandler { get; private set; }
+        [SerializeField]
+        private string _displayName;
+
+        public string DisplayName => _displayName;
+
+        protected IBoardData BoardData { get; private set; }
+
+        protected IWorldContext WorldContext { get; private set; }
 
         public abstract void BeginTurn();
 
-        public virtual void Initialize(IColumnEventHandler columnEventHandler)
+        public virtual void Initialize(IWorldContext worldContext, IBoardData boardData)
         {
-            ColumnEventHandler = columnEventHandler;
+            BoardData = boardData;
+            WorldContext = worldContext;
         }
 
         protected void EndTurn(int columnIndex)

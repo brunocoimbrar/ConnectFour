@@ -5,15 +5,23 @@ using Object = UnityEngine.Object;
 
 namespace ConnectFour
 {
-    public interface IColumnEventHandler
+    public interface IBoardData
     {
-        delegate void ColumnEventHandler(int columnIndex);
+        delegate void ColumnEventHandler(IBoardData boardData, int columnIndex);
 
         event ColumnEventHandler OnColumnClicked;
+
+        int ColumnCapacity { get; }
+
+        int ColumnCount { get; }
+
+        int WinSequenceSize { get; }
+
+        IReadOnlyList<IColumnData> Columns { get; }
     }
 
     [Serializable]
-    public sealed class BoardSystem : IDisposable, IColumnEventHandler
+    public sealed class BoardSystem : IDisposable, IBoardData
     {
         public enum MoveState
         {
@@ -23,7 +31,7 @@ namespace ConnectFour
             Draw,
         }
 
-        public event IColumnEventHandler.ColumnEventHandler OnColumnClicked;
+        public event IBoardData.ColumnEventHandler OnColumnClicked;
 
         [SerializeField] [Min(MinColumnCount)]
         private int _columnCount = 7;
@@ -71,7 +79,7 @@ namespace ConnectFour
             set => _discColors = value;
         }
 
-        public IReadOnlyList<ColumnObject> Columns => _columns;
+        public IReadOnlyList<IColumnData> Columns => _columns;
 
         public MoveState TryMove(int controllerIndex, int columnIndex)
         {
@@ -105,6 +113,8 @@ namespace ConnectFour
             {
                 Object.Destroy(column.gameObject);
             }
+
+            OnColumnClicked = null;
         }
 
         public void Initialize()
@@ -123,9 +133,9 @@ namespace ConnectFour
             }
         }
 
-        private void HandleColumnClicked(ColumnObject sender)
+        private void HandleColumnClicked(IColumnData sender)
         {
-            OnColumnClicked?.Invoke(_columns.IndexOf(sender));
+            OnColumnClicked?.Invoke(this, _columns.IndexOf(sender));
         }
 
         private bool HasDiagonalBackwardSequence(int controllerIndex, int columnIndex)

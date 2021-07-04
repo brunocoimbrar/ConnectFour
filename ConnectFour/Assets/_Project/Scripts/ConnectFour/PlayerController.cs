@@ -7,12 +7,12 @@ namespace ConnectFour
     {
         public override void BeginTurn()
         {
-            ColumnEventHandler.OnColumnClicked += HandleBoardSystemColumnClicked;
+            BoardData.OnColumnClicked += HandleBoardSystemColumnClicked;
         }
 
-        private void HandleBoardSystemColumnClicked(int columnIndex)
+        private void HandleBoardSystemColumnClicked(IBoardData boardData, int columnIndex)
         {
-            ColumnEventHandler.OnColumnClicked -= HandleBoardSystemColumnClicked;
+            BoardData.OnColumnClicked -= HandleBoardSystemColumnClicked;
             EndTurn(columnIndex);
         }
     }

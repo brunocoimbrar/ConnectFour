@@ -8,7 +8,7 @@ namespace ConnectFour.Tests
         [Test]
         public void HumanVsHuman3TurnsFlow()
         {
-            ColumnEventHandler columnEventHandler = new ColumnEventHandler();
+            BoardData boardData = new BoardData();
             TurnSystem turnSystem = new TurnSystem
             {
                 ControllersAssets = new Controller[]
@@ -18,16 +18,16 @@ namespace ConnectFour.Tests
                 },
             };
 
-            turnSystem.Initialize(columnEventHandler);
+            turnSystem.Initialize(null, boardData);
 
             bool isTriggered = false;
             int currentTurnIndex = 0;
             int randomColumnIndex = Random.Range(0, 6);
 
-            void handleTurnEnded(int controllerIndex, int columnIndex)
+            void handleTurnEnded(IControllerData controllerData, int columnIndex)
             {
                 isTriggered = true;
-                Assert.AreEqual(currentTurnIndex % turnSystem.ControllersAssets.Length, controllerIndex);
+                Assert.AreEqual(turnSystem.Controllers[currentTurnIndex % turnSystem.Controllers.Count], controllerData);
                 Assert.AreEqual(randomColumnIndex, columnIndex);
             }
 
@@ -36,7 +36,7 @@ namespace ConnectFour.Tests
             void endTurn()
             {
                 turnSystem.BeginTurn(currentTurnIndex);
-                columnEventHandler.Invoke(randomColumnIndex);
+                boardData.Invoke(randomColumnIndex);
                 Assert.IsTrue(isTriggered);
 
                 isTriggered = false;

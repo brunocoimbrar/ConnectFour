@@ -8,9 +8,9 @@ namespace ConnectFour.Tests
         [Test]
         public void EndTurnOnColumnClicked()
         {
-            ColumnEventHandler columnEventHandler = new ColumnEventHandler();
+            BoardData boardData = new BoardData();
             PlayerController playerController = ScriptableObject.CreateInstance<PlayerController>();
-            playerController.Initialize(columnEventHandler);
+            playerController.Initialize(null, boardData);
 
             bool isTriggered = false;
             int randomColumnIndex = Random.Range(0, 6);
@@ -23,7 +23,7 @@ namespace ConnectFour.Tests
 
             playerController.OnTurnEnded += handleTurnEnded;
             playerController.BeginTurn();
-            columnEventHandler.Invoke(randomColumnIndex);
+            boardData.Invoke(randomColumnIndex);
             Assert.IsTrue(isTriggered);
 
             playerController.OnTurnEnded -= handleTurnEnded;

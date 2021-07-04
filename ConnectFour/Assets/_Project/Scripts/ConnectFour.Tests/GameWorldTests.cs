@@ -194,7 +194,7 @@ namespace ConnectFour.Tests
 
         private void Click(int columnIndex)
         {
-            ExecuteEvents.Execute(_gameWorld.BoardSystem.Columns[columnIndex].gameObject, null, delegate(IPointerClickHandler handler, BaseEventData data)
+            ExecuteEvents.Execute(((ColumnObject)_gameWorld.BoardSystem.Columns[columnIndex]).gameObject, null, delegate(IPointerClickHandler handler, BaseEventData data)
             {
                 handler.OnPointerClick(null);
             });
