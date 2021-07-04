@@ -108,7 +108,7 @@ abstract class Controller <<ScriptableObject>>
   #IWorldContext WorldContext { get; }
   __
   +abstract void BeginTurn();
-  #virtual void Initialize(IWorldContext worldContext, IBoardData boardData, ITurnData turnData);
+  +void Initialize(IWorldContext worldContext, IBoardData boardData, ITurnData turnData);
   #void EndTurn(int columnIndex);
 }
 

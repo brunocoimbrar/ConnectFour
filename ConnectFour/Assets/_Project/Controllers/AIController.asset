@@ -13,3 +13,5 @@ MonoBehaviour:
   m_Name: AIController
   m_EditorClassIdentifier: 
   _displayName: CPU
+  _previewDelay: 0.2
+  _moveDelay: 0.4

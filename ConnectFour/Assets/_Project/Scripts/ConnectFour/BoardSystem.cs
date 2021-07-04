@@ -121,6 +121,8 @@ namespace ConnectFour
             }
 
             OnColumnClicked = null;
+            OnColumnPointerEnter = null;
+            OnColumnPointerExit = null;
         }
 
         public void AddPreview(int controllerIndex, int columnIndex)

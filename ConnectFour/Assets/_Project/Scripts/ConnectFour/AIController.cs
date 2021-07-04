@@ -8,7 +8,9 @@ namespace ConnectFour
     public sealed class AIController : Controller
     {
         [SerializeField]
-        private float _moveDelay = 1;
+        private float _previewDelay = 0.25f;
+        [SerializeField]
+        private float _moveDelay = 0.25f;
 
         private static readonly List<int> CachedChoices = new List<int>();
 
@@ -16,8 +18,6 @@ namespace ConnectFour
         {
             IEnumerator coroutine()
             {
-                yield return new WaitForSeconds(_moveDelay);
-
                 IReadOnlyList<IColumn> columns = BoardSystem.Columns;
                 CachedChoices.Clear();
 
@@ -29,7 +29,16 @@ namespace ConnectFour
                     }
                 }
 
-                EndTurn(CachedChoices[Random.Range(0, CachedChoices.Count)]);
+                int choice = CachedChoices[Random.Range(0, CachedChoices.Count)];
+
+                yield return new WaitForSeconds(_previewDelay);
+
+                BoardSystem.AddPreview(TurnSystem.Controllers.IndexOf(this), choice);
+
+                yield return new WaitForSeconds(_moveDelay);
+
+                BoardSystem.RemovePreview(choice);
+                EndTurn(choice);
             }
 
             World.StartCoroutine(coroutine());

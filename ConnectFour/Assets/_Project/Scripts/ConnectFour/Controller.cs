@@ -26,7 +26,7 @@ namespace ConnectFour
 
         public abstract void BeginTurn();
 
-        public virtual void Initialize(IWorld world, IBoardSystem boardSystem, ITurnSystem turnSystem)
+        public void Initialize(IWorld world, IBoardSystem boardSystem, ITurnSystem turnSystem)
         {
             BoardSystem = boardSystem;
             TurnSystem = turnSystem;
