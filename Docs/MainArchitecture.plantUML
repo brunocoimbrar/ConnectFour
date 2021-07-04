@@ -1,11 +1,157 @@
 @startuml
 
-GameWorld *-- BoardSystem
-GameWorld *-- TurnSystem
-BoardSystem *-- ColumnObject
-ColumnObject *-- DiscObject
-TurnSystem *-- Controller
-Controller <|-- PlayerController
-Controller <|-- AIController
+interface IWorld
+{
+  Coroutine StartCoroutine(IEnumerator coroutine);
+  void StopCoroutine(Coroutine coroutine);
+}
+
+class GameWorld <<MonoBehaviour>>
+{
+  +BoardSystem.MoveState LastMoveState { get; }
+  +BoardSystem BoardSystem { get; set; }
+  +TurnSystem TurnSystem { get; set; }
+  +UISystem UISystem { get; set; }
+  __
+  -void Awake();
+  -void Start();
+  -void OnDestroy();
+}
+
+interface IBoardSystem
+{
+  ColumnEventHandler OnColumnClicked;
+  ColumnEventHandler OnColumnPointerEnter;
+  ColumnEventHandler OnColumnPointerExit;
+  __
+  int ColumnCapacity { get; }
+  int ColumnCount { get; }
+  int WinSequenceSize { get; }
+  IReadOnlyList<IColumnData> Columns { get; }
+  __
+  void AddPreview(int controllerIndex, int columnIndex);
+  void RemovePreview(int columnIndex);
+}
+
+class BoardSystem <<Serializable>>
+{
+  +int ColumnCapacity { set; }
+  +int ColumnCount { set; }
+  +int WinSequenceSize { set; }
+  +ColumnObject ColumnTemplate { get; set; }
+  +Color[] DiscColors { get; set; }
+  __
+  +void Initialize();
+  +void Dispose();
+  +MoveState TryMove(int controllerIndex, int columnIndex);
+}
+
+interface IColumn
+{
+  int DiscCount { get; }
+  Transform Parent { get; }
+  __
+  int? GetControllerIndex(int discIndex);
+}
+
+class ColumnObject <<MonoBehaviour>>
+{
+  +EventHandler OnClicked;
+  +EventHandler OnPointerEnter;
+  +EventHandler OnPointerExit;
+  __
+  +DiscObject DiscTemplate { get; set; }
+  __
+  +void Initialize(int capacity);
+  +int? AddControllerIndex(int controllerIndex, Color? color);
+  +void AddPreview(Color color);
+  +void RemovePreview();
+}
+
+class DiscObject <<MonoBehaviour>>
+{
+  +int? ControllerIndex { get; set; }
+  +Color? Color { get; set; }
+  +Transform Parent { get; }
+  __
+  +void Initialize();
+}
+
+interface ITurnSystem
+{
+  IReadOnlyList<IControllerData> Controllers { get; }
+}
+
+class TurnSystem <<Serializable>>
+{
+  +BeginTurnEventHandler OnTurnBegan;
+  +EndTurnEventHandler OnTurnEnded;
+  __
+  +Controller[] ControllersAssets { get; set; }
+  __
+  +void Initialize(IWorldContext worldContext, IBoardData boardData, ITurnData turnData);
+  +void Dispose();
+  +void BeginTurn(int turnId);
+}
+
+interface IController
+{
+  string DisplayName { get; }
+}
+
+abstract class Controller <<ScriptableObject>>
+{
+  +EndTurnEventHandler OnTurnEnded
+  __
+  #IBoardData BoardData { get; }
+  #ITurnData TurnData { get; }
+  #IWorldContext WorldContext { get; }
+  __
+  +abstract void BeginTurn();
+  #virtual void Initialize(IWorldContext worldContext, IBoardData boardData, ITurnData turnData);
+  #void EndTurn(int columnIndex);
+}
+
+class PlayerController <<ScriptableObject>>
+{
+  +override void BeginTurn();
+}
+
+class AIController <<ScriptableObject>>
+{
+  +override void BeginTurn();
+}
+
+class UISystem <<Serializable>>
+{
+  +UnityAction OnRestartButtonClick { add; remove; }
+  __
+  +void Initialize(IWorldContext worldContext);
+  +void Dispose();
+  +void SetController(int controllerNumber, string controllerName, Color discColor);
+  +void SetDrawMoveFeedbackActive();
+  +void SetInvalidMOveFeedbackActive();
+  +void SetWinMoveFeedbackActive();
+}
+
+IWorld <|.right. GameWorld
+GameWorld *-right- BoardSystem
+GameWorld *-down- TurnSystem
+GameWorld *-up- UISystem
+
+IBoardSystem <|.down. BoardSystem
+IBoardSystem *-right- IColumn
+BoardSystem *-right- ColumnObject
+
+IColumn <|.down. ColumnObject
+ColumnObject *-right- DiscObject
+
+ITurnSystem <|.up. TurnSystem
+ITurnSystem *-right- IController
+TurnSystem *-right- Controller
+
+IController <|.up. Controller
+Controller <|-down- PlayerController
+Controller <|-right- AIController
 
 @enduml

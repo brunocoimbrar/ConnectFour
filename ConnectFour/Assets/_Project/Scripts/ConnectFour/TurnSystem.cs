@@ -5,17 +5,17 @@ using Object = UnityEngine.Object;
 
 namespace ConnectFour
 {
-    public interface ITurnData
+    public interface ITurnSystem
     {
-        IReadOnlyList<IControllerData> Controllers { get; }
+        IReadOnlyList<IController> Controllers { get; }
     }
 
     [Serializable]
-    public sealed class TurnSystem : IDisposable, ITurnData
+    public sealed class TurnSystem : IDisposable, ITurnSystem
     {
-        public delegate void BeginTurnEventHandler(IControllerData controllerData);
+        public delegate void BeginTurnEventHandler(IController controller);
 
-        public delegate void EndTurnEventHandler(IControllerData controllerData, int columnIndex);
+        public delegate void EndTurnEventHandler(IController controller, int columnIndex);
 
         public event BeginTurnEventHandler OnTurnBegan;
 
@@ -24,21 +24,26 @@ namespace ConnectFour
         [SerializeField]
         private Controller[] _controllersAssets;
 
+        private Controller[] _controllers;
+
         public Controller[] ControllersAssets
         {
             get => _controllersAssets;
             set => _controllersAssets = value;
         }
 
-        private Controller[] _controllers;
+        public IReadOnlyList<IController> Controllers => _controllers;
 
-        public IReadOnlyList<IControllerData> Controllers => _controllers;
-
-        public void BeginTurn(int turnId)
+        public void Initialize(IWorld world, IBoardSystem boardSystem, ITurnSystem turnSystem)
         {
-            Controller controller = _controllers[turnId % _controllers.Length];
-            controller.BeginTurn();
-            OnTurnBegan?.Invoke(controller);
+            _controllers = new Controller[_controllersAssets.Length];
+
+            for (int i = 0; i < _controllers.Length; i++)
+            {
+                _controllers[i] = Object.Instantiate(_controllersAssets[i]);
+                _controllers[i].Initialize(world, boardSystem, turnSystem);
+                _controllers[i].OnTurnEnded += HandleControllerTurnEnded;
+            }
         }
 
         public void Dispose()
@@ -52,21 +57,16 @@ namespace ConnectFour
             OnTurnEnded = null;
         }
 
-        public void Initialize(IWorldContext worldContext, IBoardData boardData, ITurnData turnData)
+        public void BeginTurn(int turnId)
         {
-            _controllers = new Controller[_controllersAssets.Length];
-
-            for (int i = 0; i < _controllers.Length; i++)
-            {
-                _controllers[i] = Object.Instantiate(_controllersAssets[i]);
-                _controllers[i].Initialize(worldContext, boardData, turnData);
-                _controllers[i].OnTurnEnded += HandleControllerTurnEnded;
-            }
+            Controller controller = _controllers[turnId % _controllers.Length];
+            controller.BeginTurn();
+            OnTurnBegan?.Invoke(controller);
         }
 
-        private void HandleControllerTurnEnded(Controller sender, int columnIndex)
+        private void HandleControllerTurnEnded(Controller controller, int columnIndex)
         {
-            OnTurnEnded?.Invoke(sender, columnIndex);
+            OnTurnEnded?.Invoke(controller, columnIndex);
         }
     }
 }

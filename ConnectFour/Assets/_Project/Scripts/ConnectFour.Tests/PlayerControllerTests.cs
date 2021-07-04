@@ -6,11 +6,11 @@ namespace ConnectFour.Tests
 {
     public class PlayerControllerTests
     {
-        public sealed class TurnData : ITurnData
+        public sealed class TurnSystem : ITurnSystem
         {
-            public IReadOnlyList<IControllerData> Controllers { get; private set; }
+            public IReadOnlyList<IController> Controllers { get; }
 
-            public TurnData(params IControllerData[] controllerDatas)
+            public TurnSystem(params IController[] controllerDatas)
             {
                 Controllers = controllerDatas;
             }
@@ -19,9 +19,9 @@ namespace ConnectFour.Tests
         [Test]
         public void EndTurnOnColumnClicked()
         {
-            BoardData boardData = new BoardData();
+            DummyBoardSystem dummyBoardSystem = new DummyBoardSystem();
             PlayerController playerController = ScriptableObject.CreateInstance<PlayerController>();
-            playerController.Initialize(null, boardData, new TurnData(playerController));
+            playerController.Initialize(null, dummyBoardSystem, new TurnSystem(playerController));
 
             bool isTriggered = false;
             int randomColumnIndex = UnityEngine.Random.Range(0, 6);
@@ -34,7 +34,7 @@ namespace ConnectFour.Tests
 
             playerController.OnTurnEnded += handleTurnEnded;
             playerController.BeginTurn();
-            boardData.Invoke(randomColumnIndex);
+            dummyBoardSystem.Invoke(randomColumnIndex);
             Assert.IsTrue(isTriggered);
 
             playerController.OnTurnEnded -= handleTurnEnded;

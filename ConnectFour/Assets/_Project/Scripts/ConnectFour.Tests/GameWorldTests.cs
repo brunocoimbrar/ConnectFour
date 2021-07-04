@@ -4,7 +4,6 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.TestTools;
-using Object = UnityEngine.Object;
 
 namespace ConnectFour.Tests
 {
@@ -56,10 +55,10 @@ namespace ConnectFour.Tests
         {
             foreach (Controller controllerAsset in _gameWorld.TurnSystem.ControllersAssets)
             {
-                Object.Destroy(controllerAsset);
+                UnityEngine.Object.Destroy(controllerAsset);
             }
 
-            Object.Destroy(_gameWorld);
+            UnityEngine.Object.Destroy(_gameWorld);
 
             _gameWorld = null;
             _columnTemplate = null;

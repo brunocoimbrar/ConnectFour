@@ -7,28 +7,28 @@ namespace ConnectFour
     {
         public override void BeginTurn()
         {
-            BoardData.OnColumnClicked += HandleBoardDataColumnClicked;
-            BoardData.OnColumnPointerEnter += HandleBoardDataColumnPointerEnter;
-            BoardData.OnColumnPointerExit += HandleBoardDataColumnPointerExit;
+            BoardSystem.OnColumnClicked += HandleColumnClicked;
+            BoardSystem.OnColumnPointerEnter += HandleColumnPointerEnter;
+            BoardSystem.OnColumnPointerExit += HandleColumnPointerExit;
         }
 
-        private void HandleBoardDataColumnClicked(IBoardData boardData, int columnIndex)
+        private void HandleColumnClicked(IBoardSystem boardSystem, int columnIndex)
         {
-            BoardData.OnColumnClicked -= HandleBoardDataColumnClicked;
-            BoardData.OnColumnPointerEnter -= HandleBoardDataColumnPointerEnter;
-            BoardData.OnColumnPointerExit -= HandleBoardDataColumnPointerExit;
-            BoardData.RemovePreview(columnIndex);
+            BoardSystem.OnColumnClicked -= HandleColumnClicked;
+            BoardSystem.OnColumnPointerEnter -= HandleColumnPointerEnter;
+            BoardSystem.OnColumnPointerExit -= HandleColumnPointerExit;
+            BoardSystem.RemovePreview(columnIndex);
             EndTurn(columnIndex);
         }
 
-        private void HandleBoardDataColumnPointerEnter(IBoardData boardData, int columnIndex)
+        private void HandleColumnPointerEnter(IBoardSystem boardSystem, int columnIndex)
         {
-            BoardData.AddPreview(TurnData.Controllers.IndexOf(this), columnIndex);
+            BoardSystem.AddPreview(TurnSystem.Controllers.IndexOf(this), columnIndex);
         }
 
-        private void HandleBoardDataColumnPointerExit(IBoardData boardData, int columnIndex)
+        private void HandleColumnPointerExit(IBoardSystem boardSystem, int columnIndex)
         {
-            BoardData.RemovePreview(columnIndex);
+            BoardSystem.RemovePreview(columnIndex);
         }
     }
 }

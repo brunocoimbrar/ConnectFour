@@ -2,7 +2,6 @@ using NUnit.Framework;
 using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using Object = UnityEngine.Object;
 
 namespace ConnectFour.Tests
 {
@@ -23,7 +22,7 @@ namespace ConnectFour.Tests
         [TearDown]
         public void TearDown()
         {
-            Object.Destroy(_columnTemplate);
+            UnityEngine.Object.Destroy(_columnTemplate);
 
             _columnTemplate = null;
             _discTemplate = null;
@@ -79,7 +78,7 @@ namespace ConnectFour.Tests
 
             int expected = -1;
 
-            void handleColumnClicked(IBoardData boardData, int columnIndex)
+            void handleColumnClicked(IBoardSystem boardData, int columnIndex)
             {
                 Assert.AreEqual(expected, columnIndex);
                 Assert.AreEqual(expected, columnIndex);

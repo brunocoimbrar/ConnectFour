@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace ConnectFour.Tests
 {
-    public sealed class BoardData : IBoardData
+    public sealed class DummyBoardSystem : IBoardSystem
     {
-        public event IBoardData.ColumnEventHandler OnColumnClicked;
+        public event IBoardSystem.ColumnEventHandler OnColumnClicked;
 
-        public event IBoardData.ColumnEventHandler OnColumnPointerEnter;
+        public event IBoardSystem.ColumnEventHandler OnColumnPointerEnter;
 
-        public event IBoardData.ColumnEventHandler OnColumnPointerExit;
+        public event IBoardSystem.ColumnEventHandler OnColumnPointerExit;
 
         public int ColumnCapacity => 6;
 
@@ -17,7 +17,7 @@ namespace ConnectFour.Tests
 
         public int WinSequenceSize => 4;
 
-        public IReadOnlyList<IColumnData> Columns => Array.Empty<IColumnData>();
+        public IReadOnlyList<IColumn> Columns => Array.Empty<IColumn>();
 
         public void AddPreview(int controllerIndex, int columnIndex) { }
 

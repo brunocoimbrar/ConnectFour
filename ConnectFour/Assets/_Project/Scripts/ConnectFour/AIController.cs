@@ -18,12 +18,12 @@ namespace ConnectFour
             {
                 yield return new WaitForSeconds(_moveDelay);
 
-                IReadOnlyList<IColumnData> columns = BoardData.Columns;
+                IReadOnlyList<IColumn> columns = BoardSystem.Columns;
                 CachedChoices.Clear();
 
                 for (int i = 0; i < columns.Count; i++)
                 {
-                    if (columns[i].DiscCount < BoardData.ColumnCapacity)
+                    if (columns[i].DiscCount < BoardSystem.ColumnCapacity)
                     {
                         CachedChoices.Add(i);
                     }
@@ -32,7 +32,7 @@ namespace ConnectFour
                 EndTurn(CachedChoices[Random.Range(0, CachedChoices.Count)]);
             }
 
-            WorldContext.StartCoroutine(coroutine());
+            World.StartCoroutine(coroutine());
         }
     }
 }

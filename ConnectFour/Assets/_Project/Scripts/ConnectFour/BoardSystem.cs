@@ -5,9 +5,9 @@ using Object = UnityEngine.Object;
 
 namespace ConnectFour
 {
-    public interface IBoardData
+    public interface IBoardSystem
     {
-        delegate void ColumnEventHandler(IBoardData boardData, int columnIndex);
+        delegate void ColumnEventHandler(IBoardSystem boardSystem, int columnIndex);
 
         event ColumnEventHandler OnColumnClicked;
 
@@ -21,7 +21,7 @@ namespace ConnectFour
 
         int WinSequenceSize { get; }
 
-        IReadOnlyList<IColumnData> Columns { get; }
+        IReadOnlyList<IColumn> Columns { get; }
 
         void AddPreview(int controllerIndex, int columnIndex);
 
@@ -29,7 +29,7 @@ namespace ConnectFour
     }
 
     [Serializable]
-    public sealed class BoardSystem : IDisposable, IBoardData
+    public sealed class BoardSystem : IDisposable, IBoardSystem
     {
         public enum MoveState
         {
@@ -39,11 +39,11 @@ namespace ConnectFour
             Draw,
         }
 
-        public event IBoardData.ColumnEventHandler OnColumnClicked;
+        public event IBoardSystem.ColumnEventHandler OnColumnClicked;
 
-        public event IBoardData.ColumnEventHandler OnColumnPointerEnter;
+        public event IBoardSystem.ColumnEventHandler OnColumnPointerEnter;
 
-        public event IBoardData.ColumnEventHandler OnColumnPointerExit;
+        public event IBoardSystem.ColumnEventHandler OnColumnPointerExit;
 
         [SerializeField] [Min(MinColumnCount)]
         private int _columnCount = 7;
@@ -93,7 +93,35 @@ namespace ConnectFour
             set => _discColors = value;
         }
 
-        public IReadOnlyList<IColumnData> Columns => _columns;
+        public IReadOnlyList<IColumn> Columns => _columns;
+
+        public void Initialize()
+        {
+            _columns.Capacity = _columnCount;
+            _columns.Clear();
+            _columnTemplate.gameObject.SetActive(false);
+
+            for (int i = 0; i < _columnCount; i++)
+            {
+                _columns.Add(Object.Instantiate(_columnTemplate, _columnTemplate.Parent, false));
+
+                _columns[i].OnClicked += HandleColumnClicked;
+                _columns[i].OnPointerEnter += HandleColumnPointerEnter;
+                _columns[i].OnPointerExit += HandleColumnPointerExit;
+                _columns[i].Initialize(_columnCapacity);
+                _columns[i].gameObject.SetActive(true);
+            }
+        }
+
+        public void Dispose()
+        {
+            foreach (ColumnObject column in _columns)
+            {
+                Object.Destroy(column.gameObject);
+            }
+
+            OnColumnClicked = null;
+        }
 
         public void AddPreview(int controllerIndex, int columnIndex)
         {
@@ -133,45 +161,17 @@ namespace ConnectFour
             return MoveState.Draw;
         }
 
-        public void Dispose()
-        {
-            foreach (ColumnObject column in _columns)
-            {
-                Object.Destroy(column.gameObject);
-            }
-
-            OnColumnClicked = null;
-        }
-
-        public void Initialize()
-        {
-            _columns.Capacity = _columnCount;
-            _columns.Clear();
-            _columnTemplate.gameObject.SetActive(false);
-
-            for (int i = 0; i < _columnCount; i++)
-            {
-                _columns.Add(Object.Instantiate(_columnTemplate, _columnTemplate.Parent, false));
-
-                _columns[i].OnClicked += HandleColumnClicked;
-                _columns[i].OnPointerEnter += HandleColumnPointerEnter;
-                _columns[i].OnPointerExit += HandleColumnPointerExit;
-                _columns[i].Initialize(_columnCapacity);
-                _columns[i].gameObject.SetActive(true);
-            }
-        }
-
-        private void HandleColumnClicked(IColumnData sender)
+        private void HandleColumnClicked(IColumn sender)
         {
             OnColumnClicked?.Invoke(this, _columns.IndexOf(sender));
         }
 
-        private void HandleColumnPointerEnter(IColumnData sender)
+        private void HandleColumnPointerEnter(IColumn sender)
         {
             OnColumnPointerEnter?.Invoke(this, _columns.IndexOf(sender));
         }
 
-        private void HandleColumnPointerExit(IColumnData sender)
+        private void HandleColumnPointerExit(IColumn sender)
         {
             OnColumnPointerExit?.Invoke(this, _columns.IndexOf(sender));
         }

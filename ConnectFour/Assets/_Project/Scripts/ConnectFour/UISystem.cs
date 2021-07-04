@@ -33,21 +33,21 @@ namespace ConnectFour
         [SerializeField]
         private string _controllerTextFormat = "Controller {0} ({1})";
 
-        private IWorldContext _worldContext;
+        private IWorld _world;
 
-        public void Dispose()
+        public void Initialize(IWorld world)
         {
-            _restartButton.onClick.RemoveAllListeners();
-        }
-
-        public void Initialize(IWorldContext worldContext)
-        {
-            _worldContext = worldContext;
+            _world = world;
             _drawMoveFeedback.SetActive(false);
             _winMoveFeedback.SetActive(false);
             _invalidMoveFeedback.SetActive(false);
             _discImage.color = Color.clear;
             _controllerText.text = string.Empty;
+        }
+
+        public void Dispose()
+        {
+            _restartButton.onClick.RemoveAllListeners();
         }
 
         public void SetController(int controllerNumber, string controllerName, Color discColor)
@@ -61,7 +61,7 @@ namespace ConnectFour
             _drawMoveFeedback.SetActive(true);
         }
 
-        public void SetInvalidMOveFeedbackActive()
+        public void SetInvalidMoveFeedbackActive()
         {
             IEnumerator coroutine()
             {
@@ -72,7 +72,7 @@ namespace ConnectFour
                 _invalidMoveFeedback.SetActive(false);
             }
 
-            _worldContext.StartCoroutine(coroutine());
+            _world.StartCoroutine(coroutine());
         }
 
         public void SetWinMoveFeedbackActive()

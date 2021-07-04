@@ -4,24 +4,22 @@ using UnityEngine.EventSystems;
 
 namespace ConnectFour
 {
-    public interface IColumnData
+    public interface IColumn
     {
-        delegate void EventHandler(IColumnData sender);
-
-        event EventHandler OnClicked;
-
         int DiscCount { get; }
 
         int? GetControllerIndex(int discIndex);
     }
 
-    public sealed class ColumnObject : MonoBehaviour, IColumnData, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
+    public sealed class ColumnObject : MonoBehaviour, IColumn, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
     {
-        public event IColumnData.EventHandler OnClicked;
+        public delegate void EventHandler(ColumnObject sender);
 
-        public event IColumnData.EventHandler OnPointerEnter;
+        public event EventHandler OnClicked;
 
-        public event IColumnData.EventHandler OnPointerExit;
+        public event EventHandler OnPointerEnter;
+
+        public event EventHandler OnPointerExit;
 
         [SerializeField]
         private DiscObject _discTemplate;
@@ -37,37 +35,6 @@ namespace ConnectFour
         }
 
         public Transform Parent => transform.parent;
-
-        public void AddPreview(Color color)
-        {
-            if (DiscCount >= _discs.Count)
-            {
-                return;
-            }
-
-            for (int i = DiscCount; i < _discs.Count; i++)
-            {
-                if (_discs[i].Color == null)
-                {
-                    _discs[i].Color = color;
-
-                    return;
-                }
-            }
-        }
-
-        public void RemovePreview()
-        {
-            for (int i = _discs.Count - 1; i >= DiscCount; i--)
-            {
-                if (_discs[i].Color != null)
-                {
-                    _discs[i].Color = null;
-
-                    return;
-                }
-            }
-        }
 
         public void Initialize(int capacity)
         {
@@ -108,6 +75,37 @@ namespace ConnectFour
         public int? GetControllerIndex(int discIndex)
         {
             return _discs[discIndex].ControllerIndex;
+        }
+
+        public void AddPreview(Color color)
+        {
+            if (DiscCount >= _discs.Count)
+            {
+                return;
+            }
+
+            for (int i = DiscCount; i < _discs.Count; i++)
+            {
+                if (_discs[i].Color == null)
+                {
+                    _discs[i].Color = color;
+
+                    return;
+                }
+            }
+        }
+
+        public void RemovePreview()
+        {
+            for (int i = _discs.Count - 1; i >= DiscCount; i--)
+            {
+                if (_discs[i].Color != null)
+                {
+                    _discs[i].Color = null;
+
+                    return;
+                }
+            }
         }
 
         void IPointerClickHandler.OnPointerClick(PointerEventData eventData)

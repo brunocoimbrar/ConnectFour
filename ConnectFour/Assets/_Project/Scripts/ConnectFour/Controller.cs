@@ -2,14 +2,14 @@
 
 namespace ConnectFour
 {
-    public interface IControllerData
+    public interface IController
     {
         string DisplayName { get; }
     }
 
-    public abstract class Controller : ScriptableObject, IControllerData
+    public abstract class Controller : ScriptableObject, IController
     {
-        public delegate void EndTurnEventHandler(Controller sender, int columnIndex);
+        public delegate void EndTurnEventHandler(Controller controller, int columnIndex);
 
         public event EndTurnEventHandler OnTurnEnded;
 
@@ -18,19 +18,19 @@ namespace ConnectFour
 
         public string DisplayName => _displayName;
 
-        protected IBoardData BoardData { get; private set; }
+        protected IBoardSystem BoardSystem { get; private set; }
 
-        protected ITurnData TurnData { get; private set; }
+        protected ITurnSystem TurnSystem { get; private set; }
 
-        protected IWorldContext WorldContext { get; private set; }
+        protected IWorld World { get; private set; }
 
         public abstract void BeginTurn();
 
-        public virtual void Initialize(IWorldContext worldContext, IBoardData boardData, ITurnData turnData)
+        public virtual void Initialize(IWorld world, IBoardSystem boardSystem, ITurnSystem turnSystem)
         {
-            BoardData = boardData;
-            TurnData = turnData;
-            WorldContext = worldContext;
+            BoardSystem = boardSystem;
+            TurnSystem = turnSystem;
+            World = world;
         }
 
         protected void EndTurn(int columnIndex)

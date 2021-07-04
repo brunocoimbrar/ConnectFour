@@ -4,14 +4,14 @@ using UnityEngine;
 
 namespace ConnectFour
 {
-    public interface IWorldContext
+    public interface IWorld
     {
         Coroutine StartCoroutine(IEnumerator coroutine);
 
         void StopCoroutine(Coroutine coroutine);
     }
 
-    public sealed class GameWorld : MonoBehaviour, IWorldContext
+    public sealed class GameWorld : MonoBehaviour, IWorld
     {
         [SerializeField]
         private BoardSystem _boardSystem;
@@ -44,13 +44,13 @@ namespace ConnectFour
         {
             _boardSystem.Initialize();
 
-            _turnSystem.OnTurnBegan += HandleTurnSystemTurnBegan;
-            _turnSystem.OnTurnEnded += HandleTurnSystemTurnEnded;
+            _turnSystem.OnTurnBegan += HandleTurnBegan;
+            _turnSystem.OnTurnEnded += HandleTurnEnded;
             _turnSystem.Initialize(this, _boardSystem, _turnSystem);
 
             if (_uiSystem != null)
             {
-                _uiSystem.OnRestartButtonClick += HandleUISystemRestartButtonClick;
+                _uiSystem.OnRestartButtonClick += HandleRestartButtonClick;
                 _uiSystem.Initialize(this);
             }
         }
@@ -67,15 +67,15 @@ namespace ConnectFour
             _boardSystem.Dispose();
         }
 
-        private void HandleTurnSystemTurnBegan(IControllerData controllerData)
+        private void HandleTurnBegan(IController controller)
         {
-            int controllerIndex = _turnSystem.Controllers.IndexOf(controllerData);
-            _uiSystem?.SetController(controllerIndex + 1, controllerData.DisplayName, _boardSystem.DiscColors[controllerIndex]);
+            int controllerIndex = _turnSystem.Controllers.IndexOf(controller);
+            _uiSystem?.SetController(controllerIndex + 1, controller.DisplayName, _boardSystem.DiscColors[controllerIndex]);
         }
 
-        private void HandleTurnSystemTurnEnded(IControllerData controllerData, int columnIndex)
+        private void HandleTurnEnded(IController controller, int columnIndex)
         {
-            int controllerIndex = _turnSystem.Controllers.IndexOf(controllerData);
+            int controllerIndex = _turnSystem.Controllers.IndexOf(controller);
             LastMoveState = _boardSystem.TryMove(controllerIndex, columnIndex);
 
             switch (LastMoveState)
@@ -98,7 +98,7 @@ namespace ConnectFour
                 case BoardSystem.MoveState.Invalid:
                 {
                     _turnSystem.BeginTurn(controllerIndex);
-                    _uiSystem?.SetInvalidMOveFeedbackActive();
+                    _uiSystem?.SetInvalidMoveFeedbackActive();
 
                     break;
                 }
@@ -117,7 +117,7 @@ namespace ConnectFour
             }
         }
 
-        private void HandleUISystemRestartButtonClick()
+        private void HandleRestartButtonClick()
         {
             StopAllCoroutines();
             OnDestroy();
