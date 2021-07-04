@@ -18,7 +18,7 @@ namespace ConnectFour.Tests
                 },
             };
 
-            turnSystem.Initialize(null, boardData);
+            turnSystem.Initialize(null, boardData, turnSystem);
 
             bool isTriggered = false;
             int currentTurnIndex = 0;

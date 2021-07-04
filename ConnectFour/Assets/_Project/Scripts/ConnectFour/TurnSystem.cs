@@ -5,8 +5,13 @@ using Object = UnityEngine.Object;
 
 namespace ConnectFour
 {
+    public interface ITurnData
+    {
+        IReadOnlyList<IControllerData> Controllers { get; }
+    }
+
     [Serializable]
-    public sealed class TurnSystem : IDisposable
+    public sealed class TurnSystem : IDisposable, ITurnData
     {
         public delegate void BeginTurnEventHandler(IControllerData controllerData);
 
@@ -47,14 +52,14 @@ namespace ConnectFour
             OnTurnEnded = null;
         }
 
-        public void Initialize(IWorldContext worldContext, IBoardData boardData)
+        public void Initialize(IWorldContext worldContext, IBoardData boardData, ITurnData turnData)
         {
             _controllers = new Controller[_controllersAssets.Length];
 
             for (int i = 0; i < _controllers.Length; i++)
             {
                 _controllers[i] = Object.Instantiate(_controllersAssets[i]);
-                _controllers[i].Initialize(worldContext, boardData);
+                _controllers[i].Initialize(worldContext, boardData, turnData);
                 _controllers[i].OnTurnEnded += HandleControllerTurnEnded;
             }
         }

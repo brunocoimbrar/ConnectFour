@@ -15,9 +15,13 @@ namespace ConnectFour
         int? GetControllerIndex(int discIndex);
     }
 
-    public sealed class ColumnObject : MonoBehaviour, IColumnData, IPointerClickHandler
+    public sealed class ColumnObject : MonoBehaviour, IColumnData, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
     {
         public event IColumnData.EventHandler OnClicked;
+
+        public event IColumnData.EventHandler OnPointerEnter;
+
+        public event IColumnData.EventHandler OnPointerExit;
 
         [SerializeField]
         private DiscObject _discTemplate;
@@ -34,6 +38,37 @@ namespace ConnectFour
 
         public Transform Parent => transform.parent;
 
+        public void AddPreview(Color color)
+        {
+            if (DiscCount >= _discs.Count)
+            {
+                return;
+            }
+
+            for (int i = DiscCount; i < _discs.Count; i++)
+            {
+                if (_discs[i].Color == null)
+                {
+                    _discs[i].Color = color;
+
+                    return;
+                }
+            }
+        }
+
+        public void RemovePreview()
+        {
+            for (int i = _discs.Count - 1; i >= DiscCount; i--)
+            {
+                if (_discs[i].Color != null)
+                {
+                    _discs[i].Color = null;
+
+                    return;
+                }
+            }
+        }
+
         public void Initialize(int capacity)
         {
             DiscCount = 0;
@@ -45,6 +80,7 @@ namespace ConnectFour
             {
                 _discs.Add(Instantiate(_discTemplate, _discTemplate.Parent, false));
                 _discs[i].gameObject.SetActive(true);
+                _discs[i].Initialize();
             }
         }
 
@@ -58,7 +94,8 @@ namespace ConnectFour
                 {
                     if (_discs[i].ControllerIndex == null)
                     {
-                        _discs[i].SetControllerIndex(controllerIndex, color);
+                        _discs[i].ControllerIndex = controllerIndex;
+                        _discs[i].Color = color;
 
                         return i;
                     }
@@ -76,6 +113,16 @@ namespace ConnectFour
         void IPointerClickHandler.OnPointerClick(PointerEventData eventData)
         {
             OnClicked?.Invoke(this);
+        }
+
+        void IPointerEnterHandler.OnPointerEnter(PointerEventData eventData)
+        {
+            OnPointerEnter?.Invoke(this);
+        }
+
+        void IPointerExitHandler.OnPointerExit(PointerEventData eventData)
+        {
+            OnPointerExit?.Invoke(this);
         }
     }
 }

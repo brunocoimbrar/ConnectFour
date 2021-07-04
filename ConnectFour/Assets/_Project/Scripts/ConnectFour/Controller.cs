@@ -20,13 +20,16 @@ namespace ConnectFour
 
         protected IBoardData BoardData { get; private set; }
 
+        protected ITurnData TurnData { get; private set; }
+
         protected IWorldContext WorldContext { get; private set; }
 
         public abstract void BeginTurn();
 
-        public virtual void Initialize(IWorldContext worldContext, IBoardData boardData)
+        public virtual void Initialize(IWorldContext worldContext, IBoardData boardData, ITurnData turnData)
         {
             BoardData = boardData;
+            TurnData = turnData;
             WorldContext = worldContext;
         }
 

@@ -11,6 +11,10 @@ namespace ConnectFour
 
         event ColumnEventHandler OnColumnClicked;
 
+        event ColumnEventHandler OnColumnPointerEnter;
+
+        event ColumnEventHandler OnColumnPointerExit;
+
         int ColumnCapacity { get; }
 
         int ColumnCount { get; }
@@ -18,6 +22,10 @@ namespace ConnectFour
         int WinSequenceSize { get; }
 
         IReadOnlyList<IColumnData> Columns { get; }
+
+        void AddPreview(int controllerIndex, int columnIndex);
+
+        void RemovePreview(int columnIndex);
     }
 
     [Serializable]
@@ -33,6 +41,10 @@ namespace ConnectFour
 
         public event IBoardData.ColumnEventHandler OnColumnClicked;
 
+        public event IBoardData.ColumnEventHandler OnColumnPointerEnter;
+
+        public event IBoardData.ColumnEventHandler OnColumnPointerExit;
+
         [SerializeField] [Min(MinColumnCount)]
         private int _columnCount = 7;
         [SerializeField] [Min(MinColumnCapacity)]
@@ -41,6 +53,8 @@ namespace ConnectFour
         private int _winSequenceSize = 4;
         [SerializeField]
         private ColumnObject _columnTemplate;
+        [SerializeField]
+        private float _previewDiscAlpha = 0.5f;
         [SerializeField]
         private Color[] _discColors = Array.Empty<Color>();
 
@@ -80,6 +94,18 @@ namespace ConnectFour
         }
 
         public IReadOnlyList<IColumnData> Columns => _columns;
+
+        public void AddPreview(int controllerIndex, int columnIndex)
+        {
+            Color color = _discColors[controllerIndex];
+            color.a = _previewDiscAlpha;
+            _columns[columnIndex].AddPreview(color);
+        }
+
+        public void RemovePreview(int columnIndex)
+        {
+            _columns[columnIndex].RemovePreview();
+        }
 
         public MoveState TryMove(int controllerIndex, int columnIndex)
         {
@@ -128,6 +154,8 @@ namespace ConnectFour
                 _columns.Add(Object.Instantiate(_columnTemplate, _columnTemplate.Parent, false));
 
                 _columns[i].OnClicked += HandleColumnClicked;
+                _columns[i].OnPointerEnter += HandleColumnPointerEnter;
+                _columns[i].OnPointerExit += HandleColumnPointerExit;
                 _columns[i].Initialize(_columnCapacity);
                 _columns[i].gameObject.SetActive(true);
             }
@@ -136,6 +164,16 @@ namespace ConnectFour
         private void HandleColumnClicked(IColumnData sender)
         {
             OnColumnClicked?.Invoke(this, _columns.IndexOf(sender));
+        }
+
+        private void HandleColumnPointerEnter(IColumnData sender)
+        {
+            OnColumnPointerEnter?.Invoke(this, _columns.IndexOf(sender));
+        }
+
+        private void HandleColumnPointerExit(IColumnData sender)
+        {
+            OnColumnPointerExit?.Invoke(this, _columns.IndexOf(sender));
         }
 
         private bool HasDiagonalBackwardSequence(int controllerIndex, int columnIndex)

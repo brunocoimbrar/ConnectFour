@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace ConnectFour
 {
     [Serializable]
-    public sealed class UISystem
+    public sealed class UISystem : IDisposable
     {
         public event UnityAction OnRestartButtonClick
         {

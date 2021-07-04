@@ -7,13 +7,28 @@ namespace ConnectFour
     {
         public override void BeginTurn()
         {
-            BoardData.OnColumnClicked += HandleBoardSystemColumnClicked;
+            BoardData.OnColumnClicked += HandleBoardDataColumnClicked;
+            BoardData.OnColumnPointerEnter += HandleBoardDataColumnPointerEnter;
+            BoardData.OnColumnPointerExit += HandleBoardDataColumnPointerExit;
         }
 
-        private void HandleBoardSystemColumnClicked(IBoardData boardData, int columnIndex)
+        private void HandleBoardDataColumnClicked(IBoardData boardData, int columnIndex)
         {
-            BoardData.OnColumnClicked -= HandleBoardSystemColumnClicked;
+            BoardData.OnColumnClicked -= HandleBoardDataColumnClicked;
+            BoardData.OnColumnPointerEnter -= HandleBoardDataColumnPointerEnter;
+            BoardData.OnColumnPointerExit -= HandleBoardDataColumnPointerExit;
+            BoardData.RemovePreview(columnIndex);
             EndTurn(columnIndex);
+        }
+
+        private void HandleBoardDataColumnPointerEnter(IBoardData boardData, int columnIndex)
+        {
+            BoardData.AddPreview(TurnData.Controllers.IndexOf(this), columnIndex);
+        }
+
+        private void HandleBoardDataColumnPointerExit(IBoardData boardData, int columnIndex)
+        {
+            BoardData.RemovePreview(columnIndex);
         }
     }
 }

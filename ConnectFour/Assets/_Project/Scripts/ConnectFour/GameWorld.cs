@@ -46,7 +46,7 @@ namespace ConnectFour
 
             _turnSystem.OnTurnBegan += HandleTurnSystemTurnBegan;
             _turnSystem.OnTurnEnded += HandleTurnSystemTurnEnded;
-            _turnSystem.Initialize(this, (IBoardData)_boardSystem);
+            _turnSystem.Initialize(this, _boardSystem, _turnSystem);
 
             if (_uiSystem != null)
             {

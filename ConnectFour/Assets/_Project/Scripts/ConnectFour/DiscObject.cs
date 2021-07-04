@@ -8,17 +8,29 @@ namespace ConnectFour
         [SerializeField]
         private Image _image;
 
-        public int? ControllerIndex { get; private set; }
+        private Color _defaultColor;
+
+        public int? ControllerIndex { get; set; }
+
+        public Color? Color
+        {
+            get => _image != null && _image.color != _defaultColor ? _image.color : (Color?)null;
+            set
+            {
+                if (_image != null)
+                {
+                    _image.color = value.GetValueOrDefault(_defaultColor);
+                }
+            }
+        }
 
         public Transform Parent => transform.parent;
 
-        public void SetControllerIndex(int index, Color? color = null)
+        public void Initialize()
         {
-            ControllerIndex = index;
-
-            if (color.HasValue && _image != null)
+            if (_image != null)
             {
-                _image.color = color.Value;
+                _defaultColor = _image.color;
             }
         }
     }
